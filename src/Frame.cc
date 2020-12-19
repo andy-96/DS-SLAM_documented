@@ -135,6 +135,7 @@ void Frame::InitializeClass()
 Frame::Frame()
 {}
 //Copy Constructor
+// AC: mpORBextractorLeft = instance of ORBextractor
 Frame::Frame(const Frame &frame)
    :mpORBvocabulary(frame.mpORBvocabulary), mpORBextractorLeft(frame.mpORBextractorLeft), mpORBextractorRight(frame.mpORBextractorRight),
     mTimeStamp(frame.mTimeStamp),
@@ -207,8 +208,8 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 
     cv::Mat  imGrayT = imGray;
     // Calculate the dynamic abnormal points and output the T matrix
+    // AC: imGrayPre: previous imGray
     if(imGrayPre.data)
-    {
         std::chrono::steady_clock::time_point tm1 = std::chrono::steady_clock::now();
         ProcessMovingObject(imGray);
         std::chrono::steady_clock::time_point tm2 = std::chrono::steady_clock::now();
@@ -223,6 +224,7 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 
 }
 
+// AC: imS = segmented image using SegNet
 void Frame::CalculEverything( cv::Mat &imRGB, const cv::Mat &imGray,const cv::Mat &imDepth,const cv::Mat &imS)
 { 
 
@@ -231,6 +233,7 @@ void Frame::CalculEverything( cv::Mat &imRGB, const cv::Mat &imGray,const cv::Ma
     {
         for ( int n=0; n<imS.cols; n+=1 )
         {
+            // AC: People are MOST LIKELY to be moving...
             int labelnum = (int)imS.ptr<uchar>(m)[n];
             if(labelnum == PEOPLE_LABLE)
             {
@@ -243,6 +246,8 @@ void Frame::CalculEverything( cv::Mat &imRGB, const cv::Mat &imGray,const cv::Ma
         break;
     }
 
+    // AC: T_M is an array with abnormal points AND
+    // AC: if people are in frame
     if(!T_M.empty() && flagprocess )
     {
         std::chrono::steady_clock::time_point tc1 = std::chrono::steady_clock::now();
@@ -350,7 +355,7 @@ void Frame::ProcessMovingObject(const cv::Mat &imgray)
     cv::goodFeaturesToTrack(imGrayPre, prepoint, 1000, 0.01, 8, cv::Mat(), 3, true, 0.04);
     cv::cornerSubPix(imGrayPre, prepoint, cv::Size(10, 10), cv::Size(-1, -1), cv::TermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03));
 	cv::calcOpticalFlowPyrLK(imGrayPre, imgray, prepoint, nextpoint, state, err, cv::Size(22, 22), 5, cv::TermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.01));
-
+    // AC: output of state: output status vector (of unsigned chars); each element of the vector is set to 1 if the flow for the corresponding features has been found, otherwise, it is set to 0.
 	for (int i = 0; i < state.size(); i++)
     {
         if(state[i] != 0)
@@ -403,6 +408,7 @@ void Frame::ProcessMovingObject(const cv::Mat &imgray)
     {
         if (state[i] != 0)
         {
+            // AC: What is being calculated here?!
             double A = F.at<double>(0, 0)*prepoint[i].x + F.at<double>(0, 1)*prepoint[i].y + F.at<double>(0, 2);
             double B = F.at<double>(1, 0)*prepoint[i].x + F.at<double>(1, 1)*prepoint[i].y + F.at<double>(1, 2);
             double C = F.at<double>(2, 0)*prepoint[i].x + F.at<double>(2, 1)*prepoint[i].y + F.at<double>(2, 2);

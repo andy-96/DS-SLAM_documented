@@ -1059,27 +1059,31 @@ void ORBextractor::DeleteOneRowOfMat(cv::Mat& object, int num)
     }
 }
 
+
+// AC: 
 int ORBextractor::CheckMovingKeyPoints( const cv::Mat &imGray, const cv::Mat &imS,std::vector<std::vector<cv::KeyPoint>>& mvKeysT,std::vector<cv::Point2f> T)
 {
    
     float scale;
     int flag_orb_mov =0;
    
-   // Make further judgment
-       
+    // Make further judgment
+    // AC: Check whether a keypoint is in the segment class "people" 
 	for (int i = 0; i < T.size(); i++)
 	{
 	    for(int m = -15; m < 15; m++) 
 	    {
 	        for(int n = -15; n < 15; n++)
 	        {
+                // AC: wiggle keypoint around +- 15 to check whether the keypoint is in segment of the label people
 	            int my = ((int)T[i].y + n) ;
 	            int mx = ((int)T[i].x + m) ;
 		        if( ((int)T[i].y + n) > (Camera::height -1) ) my = (Camera::height - 1) ;
 	        	if( ((int)T[i].y + n) < 1 ) my = 0;
 		        if( ((int)T[i].x + m) > (Camera::width -1) ) mx = (Camera::width - 1) ;
 		        if( ((int)T[i].x + m) < 1 ) mx = 0;
-                // The label of peopel is 15
+                // The label of people is 15
+
 		        if((int)imS.ptr<uchar>(my)[mx] == PEOPLE_LABLE)
 		        {
 		            flag_orb_mov=1;
@@ -1094,6 +1098,7 @@ int ORBextractor::CheckMovingKeyPoints( const cv::Mat &imGray, const cv::Mat &im
 	}
 	 
 	// Moving
+    // AC: If yes, erase the point
 	if(flag_orb_mov==1)
 	{
 	    for (int level = 0; level < nlevels; ++level)

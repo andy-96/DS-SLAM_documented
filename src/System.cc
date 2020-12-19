@@ -234,6 +234,7 @@ cv::Mat System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const doub
 
     // Check mode change
     {
+        // AC: locks a given thread
         unique_lock<mutex> lock(mMutexMode);
         if(mbActivateLocalizationMode)
         {
